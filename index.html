@@ -50,10 +50,10 @@
 
     function stats() {
         potentialWords = words
-        answer = document.getElementById("solution").value
+        answer = document.getElementById("solution").value.toLowerCase()
         guesses = []
         for (let i = 0; i < 6; i++) {
-            guesses.push(document.getElementById("guess" + (i + 1)).value)
+            guesses.push(document.getElementById("guess" + (i + 1)).value.toLowerCase())
         }
         console.log(answer)
         console.log(guesses);
