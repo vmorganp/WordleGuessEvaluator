@@ -102,7 +102,7 @@
             }
             html = "remaining " + potentialWords.length + " out of " + words.length
             if (potentialWords.length < 20) {
-                html = html + "<br>" + potentialWords
+                html = html + "<br>" + potentialWords.join(" ")
             }
             x = document.getElementById("guess" + (g + 1) + "Stats")
             x.innerHTML = html
