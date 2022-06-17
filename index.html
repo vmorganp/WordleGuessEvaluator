@@ -60,7 +60,11 @@
         for (let g = 0; g < guesses.length; g++) {
             colors = ["", "", "", "", ""]
             const guess = guesses[g];
-            if (guess == "") { continue }
+            if (guess == "") {
+                x = document.getElementById("guess" + (g + 1) + "Stats")
+                x.innerHTML=""
+                continue 
+            }
             for (let l = 0; l < guess.length; l++) {
                 const letter = guess[l];
                 for (let l = 0; l < guess.length; l++) {
