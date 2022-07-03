@@ -50,7 +50,7 @@
 
     function stats() {
         potentialWords = words
-        answer = document.getElementById("solution").value.toLowerCase()
+        answer = document.getElementById("solution").value.toLowerCase().trim()
         guesses = []
         for (let i = 0; i < 6; i++) {
             guesses.push(document.getElementById("guess" + (i + 1)).value.toLowerCase())
@@ -105,7 +105,7 @@
                 }
             }
             html = "remaining " + potentialWords.length + " out of " + words.length
-            if (potentialWords.length < 20) {
+            if (potentialWords.length < 100) {
                 html = html + "<br>" + potentialWords.join(" ")
             }
             x = document.getElementById("guess" + (g + 1) + "Stats")
