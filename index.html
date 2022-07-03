@@ -53,7 +53,7 @@
         answer = document.getElementById("solution").value.toLowerCase().trim()
         guesses = []
         for (let i = 0; i < 6; i++) {
-            guesses.push(document.getElementById("guess" + (i + 1)).value.toLowerCase())
+            guesses.push(document.getElementById("guess" + (i + 1)).value.toLowerCase().trim())
         }
         console.log(answer)
         console.log(guesses);
