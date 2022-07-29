@@ -53,7 +53,7 @@ async function stats() {
     for (let i = 0; i < data['guesses'].length; i++) {
         const guess = data['guesses'][i][Object.keys(data['guesses'][i])];
         table = `
-        <table>
+        <table class="table">
           <tr>
             <td># of Remaining Solutions</td>
             <td>${guess.remainingSolutionsCount}</td>
@@ -66,7 +66,7 @@ async function stats() {
             table += `
             <tr>
               <td>Remaining Solutions</td>
-              <td>${guess.remainingSolutions}</td>
+              <td>${guess.remainingSolutions.join(" ")}</td>
             </tr>
             `
         }
@@ -75,7 +75,7 @@ async function stats() {
             table += `
             <tr>
               <td>Remaining Solutions</td>
-              <td>${guess.remainingGuessable}</td>
+              <td>${guess.remainingGuessable.join(" ")}</td>
             </tr>
             `
         }
