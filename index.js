@@ -17,7 +17,6 @@ async function stats() {
     }
 
     data = process(data)
-    console.log(data);
 
     tmpGuessable = wordle_guessable
     tmpSolutions = wordle_solutions
@@ -53,15 +52,14 @@ async function stats() {
     // output current data
     for (let i = 0; i < data['guesses'].length; i++) {
         const guess = data['guesses'][i][Object.keys(data['guesses'][i])];
-        console.log(guess);
         table = `
         <table>
           <tr>
-            <td>Remaining Solutions #</td>
+            <td># of Remaining Solutions</td>
             <td>${guess.remainingSolutionsCount}</td>
           </tr>
           <tr>
-            <td>Remaining Guessable Words #</td>
+            <td># of Remaining Guessable Words</td>
             <td>${guess.remainingGuessableCount}</td>
           </tr>`
         if (guess.remainingSolutions) {
@@ -88,8 +86,6 @@ async function stats() {
 }
 
 function prune(guess, wordlist) {
-    console.log("pruning for")
-    console.log(Object.keys(guess).join());
     for (const letter in guess) {
         if (Object.hasOwnProperty.call(guess, letter)) {
             const element = guess[letter];
