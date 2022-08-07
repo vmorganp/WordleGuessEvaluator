@@ -17,6 +17,7 @@ async function stats() {
     }
 
     data = process(data)
+    console.log(data);
 
     tmpGuessable = wordle_guessable
     tmpSolutions = wordle_solutions
@@ -40,6 +41,7 @@ async function stats() {
         tmpGuessable = prunedGuessable
         tmpSolutions = prunedSolutions
     }
+
     // at this point we're done making data, it's all just displaying it
     console.log(data)
 
@@ -74,7 +76,7 @@ async function stats() {
         if (guess.remainingGuessable) {
             table += `
             <tr>
-              <td>Remaining Solutions</td>
+              <td>Remaining Guessable</td>
               <td>${guess.remainingGuessable.join(" ")}</td>
             </tr>
             `
@@ -86,12 +88,13 @@ async function stats() {
 }
 
 function prune(guess, wordlist) {
+    const debugWord = ""
     for (const letter in guess) {
         if (Object.hasOwnProperty.call(guess, letter)) {
             const element = guess[letter];
 
             // black
-            if (element.occurences == 0) {
+            if (element.max == 0) {
                 wordlist = wordlist.filter(function (str) {
                     if (!str.includes(letter)) {
                         return str
@@ -102,7 +105,11 @@ function prune(guess, wordlist) {
             // green/yellow
             else {
                 wordlist = wordlist.filter(function (str) {
-                    let occurences = element.occurences
+                    if (str == debugWord) {
+                        console.log(str);
+                        console.log(element);
+                    }
+                    let occurences = element.max
                     // filter out words that don't have matching letter on green
                     for (let i = 0; i < element.positions.length; i++) {
                         const x = element.positions[i];
@@ -115,6 +122,11 @@ function prune(guess, wordlist) {
                         }
                     }
 
+
+                    if (str == debugWord) {
+                        console.log(`Present after filtering green/yellow 1`)
+                    }
+
                     // filter out words with letter in same position as yellow
                     for (let i = 0; i < element.nonPositions.length; i++) {
                         const x = element.nonPositions[i];
@@ -124,6 +136,10 @@ function prune(guess, wordlist) {
 
                     }
 
+                    if (str == debugWord) {
+                        console.log(`Present after filtering green/yellow 2`)
+                    }
+
                     // filter out words that are missing a yellow
                     if (occurences > 0) {
                         if ((str.split(letter).length - 1) < occurences) {
@@ -131,11 +147,18 @@ function prune(guess, wordlist) {
                         }
                     }
 
-                    // filter out words that have too many of a yellow
-                    if (element.occurences > 0) {
-                        if ((str.split(letter).length - 1) > element.occurences) {
+                    if (str == debugWord) {
+                        console.log(`Present after filtering green/yellow 3`)
+                    }
+
+
+                    if ((str.split(letter).length - 1) < element.min) {
                             return false
                         }
+
+
+                    if (str == debugWord) {
+                        console.log(`Present after filtering green/yellow 4`)
                     }
 
                     return true
@@ -148,41 +171,53 @@ function prune(guess, wordlist) {
 
 
 function process(data) {
-    // iterate guesses
-    for (let w = 0; w < data.guesses.length; w++) {
-        answer = data.answer
-        guess = Object.keys(data.guesses[w])[0]
-        // initialize data for each letter
-        for (let l = 0; l < 5; l++) {
-            letter = guess[l]
-            data.guesses[w][guess][letter] = { "occurences": 0, positions: [], nonPositions: [] }
+    for (const g in data.guesses) {
+        let answer = data.answer
+        let guessStr = JSON.parse(JSON.stringify(Object.keys(data.guesses[g])[0]))
+        const guessObj = data.guesses[g][guessStr];
+
+        // initialize the data for each letter
+        for (const l in guessStr) {
+            const letterStr = guessStr[l]
+            guessObj[letterStr] = {}
+            guessObj[letterStr].min = 0
+            guessObj[letterStr].max = null
+            guessObj[letterStr].positions = []
+            guessObj[letterStr].nonPositions = []
         }
 
-        // figure out the occurences and positions
-        // green and black first, otherwise yellow acts weird
-        for (let l = 0; l < 5; l++) {
-            letter = guess[l]
+        // green and black first, so we can sanitize data for yellow
+        for (const l in guessStr) {
+            let letterStr = guessStr[l]
+            let letterObj = guessObj[letterStr]
 
             // green
-            if (guess[l] == answer[l]) {
-                data.guesses[w][Object.keys(data.guesses[w])[0]][letter].occurences++
-                data.guesses[w][Object.keys(data.guesses[w])[0]][letter].positions.push(l)
-                guess = replace_used_char_in_get_colors(guess, l)
+            if (letterStr == answer[l]) {
+                letterObj.min++
+                letterObj.positions.push(l)
+                guessStr = replace_used_char_in_get_colors(guessStr, l)
                 answer = replace_used_char_in_get_colors(answer, l)
-
             }
+
             // grey
-            else if (!answer.includes(guess[l])) {
-                guess = replace_used_char_in_get_colors(guess, l)
+            else if (!answer.includes(letterStr)) {
+                letterObj.max = 0
             }
         }
 
         // yellow
-        for (let l = 0; l < 5; l++) {
-            if (answer.includes(guess[l]) && guess[l] != " ") {
-                data.guesses[w][Object.keys(data.guesses[w])[0]][guess[l]].occurences++
-                data.guesses[w][Object.keys(data.guesses[w])[0]][guess[l]].nonPositions.push(l)
-                guess = replace_used_char_in_get_colors(guess, l)
+        for (const l in guessStr) {
+            let letterStr = guessStr[l]
+            if (letterStr == " ") continue
+            let letterObj = guessObj[letterStr]
+            if (answer.includes(guessStr[l]) && guessStr[l] != " ") {
+                letterObj.min++
+                letterObj.nonPositions.push(l)
+                guessStr = replace_used_char_in_get_colors(guessStr, l)
+                answer = answer.replace(letterStr, " ")
+            }
+            else {
+                letterObj.max = letterObj.min
             }
         }
     }
@@ -191,20 +226,8 @@ function process(data) {
 
 // a poorly named helper for get_colors
 function replace_used_char_in_get_colors(word, index) {
-    return word.substring(0, index) + " " + word.substring(index + 1);
-}
-
-
-function print_colors(colors) {
-    const colorMap = {
-        "green": "&#129001;",
-        "grey": "&#11035;",
-        "yellow": "&#129000;",
-    }
-    colorString = "<p>"
-    for (let i = 0; i < colors.length; i++) {
-        const color = colors[i];
-        colorString = colorString.concat(colorMap[color])
-    }
-    return colorString.concat("</p>")
+    // for fucks sake, why would the index of something be string by default
+    // anyway, we fix that here
+    index = parseInt(index)
+    return [word.substring(0, index), word.substring(index + 1)].join(" ")
 }
